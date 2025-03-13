@@ -13,7 +13,6 @@ public class Colors {
   public static final Color INTERFACE_PRIMARY_DARK = new Color(45, 48, 56);
   public static final Color INTERFACE_TITLE_BAR_DARK = new Color(34, 36, 42);
   public static final Color INTERFACE_TITLE_BAR_LIGHT = new Color(230, 230, 230);
-  public static final Color DISCORD_PRIMARY = new Color(114, 137, 218);
   public static final Color KOFI = new Color(255, 94, 91);
 
 }

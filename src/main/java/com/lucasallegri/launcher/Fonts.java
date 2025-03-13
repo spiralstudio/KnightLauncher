@@ -12,21 +12,13 @@ public class Fonts {
 
   private static final String fontPathRegular = "/fonts/GoogleSans-Regular.ttf";
   private static final String fontPathMedium = "/fonts/GoogleSans-Medium.ttf";
-  private static final String fontPathRegularJP = "/fonts/NotoSansJP-Regular.otf";
-  private static final String fontPathMediumJP = "/fonts/NotoSansJP-Medium.otf";
-  private static final String fontPathRegularAR = "/fonts/Lemonada-Regular.ttf";
-  private static final String fontPathMediumAR = "/fonts/Lemonada-Medium.ttf";
-  private static final String fontPathRegularZHCN = "/fonts/NotoSansSC-Regular.otf";
-  private static final String fontPathMediumZHCN = "/fonts/NotoSansSC-Medium.otf";
-  private static final String fontPathRegularZHTR = "/fonts/NotoSansTC-Regular.otf";
-  private static final String fontPathMediumZHTR = "/fonts/NotoSansTC-Medium.otf";
   public static Font fontReg = null;
   public static Font fontRegBig = null;
   public static Font fontMed = null;
   public static Font fontMedIta = null;
   public static Font fontMedBig = null;
   public static Font fontMedGiant = null;
-  private static float sizeMultiplier = 1.0f;
+  private static float sizeMultiplier = 1.2f;
 
   public static void setup() {
 
@@ -37,46 +29,12 @@ public class Fonts {
     InputStream fontMedBigIs;
     InputStream fontMedGiantIs;
 
-    if (Settings.lang.equalsIgnoreCase("jp")) {
-      fontRegIs = LauncherGUI.class.getResourceAsStream(fontPathRegularJP);
-      fontRegBigIs = LauncherGUI.class.getResourceAsStream(fontPathRegularJP);
-      fontMedIs = LauncherGUI.class.getResourceAsStream(fontPathMediumJP);
-      fontMedItaIs = LauncherGUI.class.getResourceAsStream(fontPathMediumJP);
-      fontMedBigIs = LauncherGUI.class.getResourceAsStream(fontPathMediumJP);
-      fontMedGiantIs = LauncherGUI.class.getResourceAsStream(fontPathMediumJP);
-      sizeMultiplier = 1.1f;
-    } else if (Settings.lang.equalsIgnoreCase("ar")) {
-      fontRegIs = LauncherGUI.class.getResourceAsStream(fontPathRegularAR);
-      fontRegBigIs = LauncherGUI.class.getResourceAsStream(fontPathRegularAR);
-      fontMedIs = LauncherGUI.class.getResourceAsStream(fontPathMediumAR);
-      fontMedItaIs = LauncherGUI.class.getResourceAsStream(fontPathMediumAR);
-      fontMedBigIs = LauncherGUI.class.getResourceAsStream(fontPathMediumAR);
-      fontMedGiantIs = LauncherGUI.class.getResourceAsStream(fontPathMediumAR);
-    } else if (Settings.lang.equalsIgnoreCase("zh-hans")) {
-      fontRegIs = LauncherGUI.class.getResourceAsStream(fontPathRegularZHCN);
-      fontRegBigIs = LauncherGUI.class.getResourceAsStream(fontPathRegularZHCN);
-      fontMedIs = LauncherGUI.class.getResourceAsStream(fontPathMediumZHCN);
-      fontMedItaIs = LauncherGUI.class.getResourceAsStream(fontPathMediumZHCN);
-      fontMedBigIs = LauncherGUI.class.getResourceAsStream(fontPathMediumZHCN);
-      fontMedGiantIs = LauncherGUI.class.getResourceAsStream(fontPathMediumZHCN);
-      sizeMultiplier = 1.2f;
-    } else if (Settings.lang.equalsIgnoreCase("zh-hant")) {
-      fontRegIs = LauncherGUI.class.getResourceAsStream(fontPathRegularZHTR);
-      fontRegBigIs = LauncherGUI.class.getResourceAsStream(fontPathRegularZHTR);
-      fontMedIs = LauncherGUI.class.getResourceAsStream(fontPathMediumZHTR);
-      fontMedItaIs = LauncherGUI.class.getResourceAsStream(fontPathMediumZHTR);
-      fontMedBigIs = LauncherGUI.class.getResourceAsStream(fontPathMediumZHTR);
-      fontMedGiantIs = LauncherGUI.class.getResourceAsStream(fontPathMediumZHTR);
-      sizeMultiplier = 1.2f;
-    } else {
-      fontRegIs = LauncherGUI.class.getResourceAsStream(fontPathRegular);
-      fontRegBigIs = LauncherGUI.class.getResourceAsStream(fontPathRegular);
-      fontMedIs = LauncherGUI.class.getResourceAsStream(fontPathMedium);
-      fontMedItaIs = LauncherGUI.class.getResourceAsStream(fontPathMedium);
-      fontMedBigIs = LauncherGUI.class.getResourceAsStream(fontPathMedium);
-      fontMedGiantIs = LauncherGUI.class.getResourceAsStream(fontPathMedium);
-      sizeMultiplier = 1.2f;
-    }
+    fontRegIs = LauncherGUI.class.getResourceAsStream(fontPathRegular);
+    fontRegBigIs = LauncherGUI.class.getResourceAsStream(fontPathRegular);
+    fontMedIs = LauncherGUI.class.getResourceAsStream(fontPathMedium);
+    fontMedItaIs = LauncherGUI.class.getResourceAsStream(fontPathMedium);
+    fontMedBigIs = LauncherGUI.class.getResourceAsStream(fontPathMedium);
+    fontMedGiantIs = LauncherGUI.class.getResourceAsStream(fontPathMedium);
 
     try {
 
