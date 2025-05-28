@@ -1,12 +1,12 @@
 package com.lucasallegri.bootstrap;
 
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -14,19 +14,25 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import java.util.zip.ZipFile;
 
 /**
  * Bootstraps instead of {@literal com.threerings.projectx.client.ProjectXApp} for loading mods and language packs.
  * <p>
- * Makes sure the "META-INF/MANIFEST.MF" is included in each mod jars,
+ * Makes sure the "META-INF/MANIFEST.MF" is included in each code mod,
  * and the main class must be specified.
  *
  * @author Leego Yih
@@ -38,45 +44,46 @@ public class ProjectXBootstrap {
   private static final String MAIN_CLASS_KEY = "Main-Class:";
   private static final String NAME_KEY = "Name:";
   private static final Properties configs = new Properties();
+  private static final Logger logger = Logger.getLogger(ProjectXBootstrap.class.getName());
 
   public static void main(String[] args) throws Exception {
-    System.setProperty("com.threerings.io.enumPolicy", "ORDINAL");
-    // ak.gm()
-    if ((boolean) invokeMethod("com.samskivert.util.ak", "gm", null, new Object[0])) {
-      UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-    }
-    // X.dM("projectx.log");
-    invokeMethod("com.threerings.util.X", "dM", null, new Object[]{"projectx.log"});
+    initLogger("bootstrap.log");
 
     loadConfigs();
 
-    loadConnectionSettings();
-
     loadJarMods();
 
-    String ticket = null;
-    String password;
-    for (int i = 0; i < args.length; ++i) {
-      if ((password = args[i]).startsWith("+connect=")) {
-        ticket = password;
-        // com.samskivert.util.c.b(args, i, 1);
-        args = (String[]) invokeMethod("com.samskivert.util.c", "b", null, new Object[]{args, i, 1});
-        break;
-      }
-    }
-    String username = args.length > 0 ? args[0] : System.getProperty("username");
-    password = args.length > 1 ? args[1] : System.getProperty("password");
-    boolean encrypted = Boolean.getBoolean("encrypted");
-    String knight = args.length > 2 ? args[2] : System.getProperty("knight");
-    String action = args.length > 3 ? args[3] : System.getProperty("action");
-    String arg = args.length > 4 ? args[4] : System.getProperty("arg");
-    String sessionKey = System.getProperty("sessionKey");
+    com.threerings.projectx.client.ProjectXApp.main(args);
+  }
 
-    Constructor<?> constructor = Class.forName("com.threerings.projectx.client.ProjectXApp")
-        .getDeclaredConstructor(String.class, String.class, boolean.class, String.class, String.class, String.class, String.class, String.class);
-    constructor.setAccessible(true);
-    Object app = constructor.newInstance(username, password, encrypted, knight, action, arg, sessionKey, ticket);
-    invokeMethod("com.threerings.projectx.client.ProjectXApp", "startup", app, new Object[0]);
+  static void initLogger(String filename) throws Exception {
+    String oldLogPath = USER_DIR + File.separator + "old-" + filename;
+    String newLogPath = USER_DIR + File.separator + filename;
+
+    File oldLogFile = new File(oldLogPath);
+    if (oldLogFile.exists()) {
+      oldLogFile.delete();
+    }
+
+    File newLogFile = new File(newLogPath);
+    if (newLogFile.exists()) {
+      newLogFile.renameTo(oldLogFile);
+    }
+
+    FileHandler fileHandler = new FileHandler(newLogPath, true);
+    fileHandler.setFormatter(new LogFormatter());
+
+    logger.addHandler(fileHandler);
+    logger.setLevel(Level.ALL);
+
+    Function<PrintStream, PrintStream> wrapper = (out) -> new PrintStream(out) {
+      public void println(String x) {logger.info(x);}
+
+      public void print(String x) {logger.info(x);}
+    };
+
+    System.setOut(wrapper.apply(System.out));
+    System.setErr(wrapper.apply(System.err));
   }
 
   static void loadConfigs() throws Exception {
@@ -85,41 +92,8 @@ public class ProjectXBootstrap {
     is.close();
   }
 
-  static void loadConnectionSettings() throws Exception {
-    // com.threerings.projectx.util.DeploymentConfig
-    Field configField = Class.forName("com.threerings.projectx.util.a").getDeclaredField("akf");
-    configField.setAccessible(true);
-    Object config = configField.get(null);
-    // com.samskivert.util.Config
-    Field propsField = Class.forName("com.samskivert.util.m").getDeclaredField("AQ");
-    propsField.setAccessible(true);
-    // deployment.properties
-    Properties properties = (Properties) propsField.get(config);
-    // Replace connection settings
-    Map<String, String> mapping = new HashMap<>();
-    mapping.put("server_host", "game.endpoint");
-    mapping.put("server_ports", "game.port");
-    mapping.put("datagram_ports", "game.port");
-    mapping.put("key.public", "game.publicKey");
-    mapping.put("client_root_url", "game.getdownURL");
-    for (Map.Entry<String, String> e : mapping.entrySet()) {
-      String newConf = configs.getProperty(e.getValue());
-      if (newConf == null) {
-        continue;
-      }
-      newConf = newConf.trim();
-      String oldConf = properties.getProperty(e.getKey());
-      if (newConf.length() > 0 && !newConf.equals(oldConf)) {
-        properties.setProperty(e.getKey(), newConf);
-        System.out.println("[deployment.properties] Replace [" + e.getKey() + "] '" + oldConf + "' -> '" + newConf + "'");
-      } else {
-        System.out.println("[deployment.properties] No change [" + e.getKey() + "] '" + oldConf + "'");
-      }
-    }
-  }
-
   static void loadJarMods() {
-    // Read disabled jar mods from KnightLauncher.properties
+    // Read disabled mods from `KnightLauncher.properties`
     Set<String> disabledJarMods = new HashSet<>();
     String disabledJarModsString = configs.getProperty("modloader.disabledMods");
     if (disabledJarModsString != null && disabledJarModsString.length() > 0) {
@@ -169,9 +143,9 @@ public class ProjectXBootstrap {
     for (File jar : jars) {
       try {
         method.invoke(classLoader, jar.toURI().toURL());
-        System.out.println("Loaded jar '" + jar.getName() + "'");
+        logger.info("Loaded jar '" + jar.getName() + "'");
       } catch (Exception e) {
-        System.out.println("Failed to load jar '" + jar.getName() + "'");
+        logger.warning("Failed to load jar '" + jar.getName() + "'");
         e.printStackTrace();
       }
     }
@@ -183,7 +157,7 @@ public class ProjectXBootstrap {
     for (File jar : jars) {
       String manifest = readZip(jar, MANIFEST_PATH);
       if (manifest == null || manifest.length() == 0) {
-        System.out.println("Failed to read '" + MANIFEST_PATH + "' from '" + jar.getName() + "'");
+        logger.warning("Failed to read '" + MANIFEST_PATH + "' from '" + jar.getName() + "'");
         continue;
       }
       String className = null;
@@ -196,7 +170,7 @@ public class ProjectXBootstrap {
         }
       }
       if (className == null || className.length() == 0) {
-        System.out.println("Failed to read 'Main-Class' from '" + jar.getName() + "'");
+        logger.warning("Failed to read 'Main-Class' from '" + jar.getName() + "'");
         continue;
       }
       if (modName == null) {
@@ -205,9 +179,9 @@ public class ProjectXBootstrap {
       try {
         Class<?> clazz = Class.forName(className);
         classes.put(modName, clazz);
-        System.out.println("Loaded class '" + className + "' from '" + jar.getName() + "'");
+        logger.info("Loaded class '" + className + "' from '" + jar.getName() + "'");
       } catch (Exception e) {
-        System.out.println("Failed to load class '" + className + "' from '" + jar.getName() + "'");
+        logger.warning("Failed to load class '" + className + "' from '" + jar.getName() + "'");
         e.printStackTrace();
       }
     }
@@ -221,15 +195,15 @@ public class ProjectXBootstrap {
       String modName = entry.getKey();
       Class<?> clazz = entry.getValue();
       try {
-        System.out.println("Mounting mod '" + modName + "'");
+        logger.info("Mounting mod '" + modName + "'");
         Method method = clazz.getDeclaredMethod("mount");
         method.setAccessible(true);
         method.invoke(null);
-        System.out.println("Mounted mod '" + modName + "'");
+        logger.info("Mounted mod '" + modName + "'");
       } catch (NoSuchMethodException e) {
-        System.out.println("Failed to mount mod '" + modName + "', it does not define `mount` method");
+        logger.warning("Failed to mount mod '" + modName + "', it does not define `mount` method");
       } catch (IllegalAccessException | InvocationTargetException e) {
-        System.out.println("Failed to mount mod '" + modName + "': " + e.getMessage());
+        logger.warning("Failed to mount mod '" + modName + "': " + e.getMessage());
         e.printStackTrace();
       }
     }
@@ -249,30 +223,40 @@ public class ProjectXBootstrap {
       zip.close();
       return sb.toString();
     } catch (Exception e) {
-      System.out.println("Failed to read '" + file.getName() + "'");
+      logger.warning("Failed to read '" + file.getName() + "'");
       e.printStackTrace();
       return null;
     }
   }
 
-  static Object invokeMethod(String className, String methodName, Object object, Object[] args) throws Exception {
-    Class<?> clazz = Class.forName(className);
-    Method[] methods = clazz.getDeclaredMethods();
-    for (int i = 0; i < methods.length; i++) {
-      Method method = methods[i];
-      if (method.getName().equals(methodName)) {
-        method.setAccessible(true);
-        return method.invoke(object, args);
+  static class LogFormatter extends Formatter {
+    private static final String format = "%1$tY/%1$tm/%1$td/%1$tH:%1$tM:%1$tS %2$s[%4$s]\t%5$s%6$s%n";
+
+    private final Date dat = new Date();
+
+    public synchronized String format(LogRecord record) {
+      dat.setTime(record.getMillis());
+      String source;
+      if (record.getSourceClassName() != null) {
+        source = record.getSourceClassName();
+        if (record.getSourceMethodName() != null) {
+          source += " " + record.getSourceMethodName();
+        }
+      } else {
+        source = record.getLoggerName();
       }
-    }
-    methods = clazz.getMethods();
-    for (int i = 0; i < methods.length; i++) {
-      Method method = methods[i];
-      if (method.getName().equals(methodName)) {
-        method.setAccessible(true);
-        return method.invoke(object, args);
+      String message = formatMessage(record);
+      String throwable = "";
+      if (record.getThrown() != null) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        pw.println();
+        record.getThrown().printStackTrace(pw);
+        pw.close();
+        throwable = sw.toString();
       }
+      return String.format(format, dat, source, record.getLoggerName(), record.getLevel().getName(), message, throwable);
     }
-    throw new NoSuchMethodException(methodName);
   }
+
 }
