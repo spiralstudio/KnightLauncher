@@ -178,14 +178,16 @@ public class ModLoader {
   }
 
   public static void extractSafeguard() {
-    try {
+    log.info("Imagine extracting safeguard LMFAO");
+    /*
+     * try {
       log.info("Extracting safeguard...");
       FileUtil.extractFileWithinJar("/modules/safeguard/bundle.zip", LauncherGlobals.USER_DIR + "/KnightLauncher/modules/safeguard/bundle.zip");
       Compressor.unzip(LauncherGlobals.USER_DIR + "/KnightLauncher/modules/safeguard/bundle.zip", LauncherGlobals.USER_DIR + "/rsrc/", false);
       log.info("Extracted safeguard.");
     } catch (IOException e) {
       log.error(e);
-    }
+    }*/
   }
 
   private static void addMod(Mod mod) {

@@ -44,16 +44,15 @@ public class LauncherGUI extends BaseGUI {
     launcherGUIFrame.setVisible(false);
     launcherGUIFrame.setTitle(Locale.getValue("t.main", LauncherGlobals.VERSION));
     launcherGUIFrame.setResizable(false);
-    launcherGUIFrame.setBounds(100, 100, 200, 200);
+    launcherGUIFrame.setBounds(100, 100, 200, 100);
     launcherGUIFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     launcherGUIFrame.setUndecorated(true);
     launcherGUIFrame.setIconImage(ImageUtil.loadImageWithinJar("/img/icon-128.png"));
     launcherGUIFrame.getContentPane().setLayout(null);
 
-    Icon launchIcon = IconFontSwing.buildIcon(FontAwesome.PLAY_CIRCLE_O, 16, ColorUtil.getForegroundColor());
-    launchButton = new JButton(Locale.getValue("b.launch"));
-    launchButton.setIcon(launchIcon);
-    launchButton.setBounds(10, 30, 100, 25);
+    Icon launchIcon = IconFontSwing.buildIcon(FontAwesome.PLAY_CIRCLE_O, 49, ColorUtil.getForegroundColor());
+    launchButton = new JButton(launchIcon);
+    launchButton.setBounds(10, 30, 52, 52);
     launchButton.setFont(Fonts.fontMed);
     launchButton.setFocusPainted(false);
     launchButton.setFocusable(false);
@@ -70,7 +69,7 @@ public class LauncherGUI extends BaseGUI {
     Icon modsIcon = IconFontSwing.buildIcon(FontAwesome.PUZZLE_PIECE, 16, ColorUtil.getForegroundColor());
     modButton = new JButton(Locale.getValue("b.mods"));
     modButton.setIcon(modsIcon);
-    modButton.setBounds(10, 60, 100, 25);
+    modButton.setBounds(72, 30, 100, 25);
     modButton.setHorizontalAlignment(SwingConstants.LEFT);
     modButton.setFont(Fonts.fontMed);
     modButton.setFocusPainted(false);
@@ -82,7 +81,7 @@ public class LauncherGUI extends BaseGUI {
     Icon settingsIcon = IconFontSwing.buildIcon(FontAwesome.COGS, 16, ColorUtil.getForegroundColor());
     settingsButton = new JButton(Locale.getValue("b.settings"));
     settingsButton.setIcon(settingsIcon);
-    settingsButton.setBounds(10, 90, 100, 25);
+    settingsButton.setBounds(72, 60, 100, 25);
     settingsButton.setHorizontalAlignment(SwingConstants.LEFT);
     settingsButton.setFont(Fonts.fontMed);
     settingsButton.setFocusPainted(false);
@@ -92,13 +91,13 @@ public class LauncherGUI extends BaseGUI {
     settingsButton.addActionListener(action -> app.sgui.switchVisibility());
 
     launchProgressBar = new JProgressBar();
-    launchProgressBar.setBounds(0, 470, 850, 5);
+    launchProgressBar.setBounds(0, 90, launcherGUIFrame.getWidth(), 5);
     launchProgressBar.setVisible(false);
     launcherGUIFrame.getContentPane().add(launchProgressBar);
 
     launchState = new JLabel("");
     launchState.setHorizontalAlignment(SwingConstants.RIGHT);
-    launchState.setBounds(638, 443, 203, 23);
+    launchState.setBounds(10, 120, launcherGUIFrame.getWidth(), 23);
     launchState.setFont(Fonts.fontRegBig);
     launchState.setVisible(false);
     launcherGUIFrame.getContentPane().add(launchState);
